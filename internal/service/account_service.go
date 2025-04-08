@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-
 	"github.com/devfullcycle/imersao22/go-gateway/internal/domain"
 	"github.com/devfullcycle/imersao22/go-gateway/internal/dto"
 )
@@ -37,6 +35,7 @@ func (s *AccountService) CreateAccount(input dto.CreateAccountInput) (*dto.Accou
 }
 
 func (s *AccountService) UpdateBalance(apiKey string, amount float64) (*dto.AccountOutput, error) {
+
 	account, err := s.repository.FindByAPIKey(apiKey)
 	if err != nil {
 		return nil, err
@@ -57,7 +56,7 @@ func (s *AccountService) FindByAPIKey(apiKey string) (*dto.AccountOutput, error)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%+v\n", account)
+
 	output := dto.FromAccount(account)
 	return &output, nil
 }
@@ -67,6 +66,7 @@ func (s *AccountService) FindByID(apiKey string) (*dto.AccountOutput, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	output := dto.FromAccount(account)
 	return &output, nil
 }

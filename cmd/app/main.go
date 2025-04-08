@@ -13,7 +13,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// getEnv retorna variável de ambiente ou valor padrão se não definida
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
@@ -22,12 +21,11 @@ func getEnv(key, defaultValue string) string {
 }
 
 func main() {
-	// Carrega variáveis de ambiente do arquivo .env
+	println("Starting application")
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	// Configura conexão com PostgreSQL usando variáveis de ambiente
 	connStr := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		getEnv("DB_HOST", "db"),
@@ -38,20 +36,20 @@ func main() {
 		getEnv("DB_SSL_MODE", "disable"),
 	)
 
-	// Inicializa conexão com o banco
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal("Error connecting to database: ", err)
 	}
 	defer db.Close()
 
-	// Inicializa camadas da aplicação (repository -> service -> server)
 	accountRepository := repository.NewAccountRepository(db)
 	accountService := service.NewAccountService(accountRepository)
 
-	// Configura e inicia o servidor HTTP
+	invoiceRepository := repository.NewInvoiceRepository(db)
+	invoiceService := service.NewInvoiceService(invoiceRepository, *accountService)
+
 	port := getEnv("HTTP_PORT", "8080")
-	srv := server.NewServer(accountService, port)
+	srv := server.NewServer(accountService, invoiceService, port)
 	srv.ConfigureRoutes()
 
 	if err := srv.Start(); err != nil {
